@@ -31,7 +31,7 @@ class POST(db.Model):
 # Schema
 class PostSchema(ma.Schema):
     class Meta:
-        fields = ('id', 'time', 'close')
+        fields = ('close', 'time')
 
 # Init schema
 post_schema = PostSchema()
@@ -46,23 +46,29 @@ usdcad = TA_Handler(
     # proxies={'http': 'http://example.com:8080'} # Uncomment to enable proxy (replace the URL).
 )
 
-@app.route('/lastclose', methods=['GET'])
-def addrow():
-    rownum = 0 # id will be row number
+@app.route('/', methods=['GET'])
+def currentclose():
+    rownum = db.session.query(POST).count()
     now = datetime.now()
     current_time = now.strftime("%H:%M:%S")
     closeprice = usdcad. get_analysis().indicators["close"] # close at 4hr
-    new_row = POST(id = rownum, time = current_time, close= closeprice)
-    db.session.add(new_row)
+    candle = POST(id = rownum, time = current_time, close= closeprice)
+    db.session.add(candle)
     db.session.commit()
 
-    return post_schema.jsonify(new_row)
-    
+    return post_schema.jsonify(candle)
 
+@app.route('/USDCAD4hr', methods=['GET'])
+def fourhourclose():
+    rownum = db.session.query(POST).count()
+    now = datetime.now()
+    current_time = now.strftime("%H:%M:%S")
+    closeprice = usdcad. get_analysis().indicators["close"] # close at 4hr
+    candle = POST(id = rownum, time = current_time, close= closeprice)
+    db.session.add(candle)
+    db.session.commit()
 
-@app.route('/', methods=['GET'])
-def get():
-    return jsonify({'msg': 'Hello World'})
+    return post_schema.jsonify(candle)
 
 
 #run api endpoint
