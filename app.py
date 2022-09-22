@@ -1,8 +1,9 @@
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_marshmallow import Marshmallow
-import os
 from tradingview_ta import TA_Handler, Interval, Exchange
+from datetime import datetime
+import os
 
 #init app
 app = Flask(__name__)
@@ -16,8 +17,8 @@ db = SQLAlchemy(app)
 ma = Marshmallow(app)
 
 # USDCAD DATA
-class USDCAD(db.Model):
-    id = db.Column(db.integer, primary_key = True)
+class POST(db.Model):
+    id = db.Column(db.Integer, primary_key = True)
     time = db.Column(db.String(100), unique=True)
     close = db.Column(db.Float)
     
@@ -26,7 +27,14 @@ class USDCAD(db.Model):
         self.id = id
         self.time = time
         self.close = close
-        pass
+
+# Schema
+class POSTSchema(ma.Schema):
+    class Meta:
+        fields = ('id', 'time', 'close')
+
+# Init schema
+product_schema = POSTSchema(strict =True)
 
 # init data stream from trading view
 usdcad = TA_Handler( 
