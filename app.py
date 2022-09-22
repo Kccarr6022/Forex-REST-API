@@ -16,7 +16,7 @@ db = SQLAlchemy(app)
 # Init ma
 ma = Marshmallow(app)
 
-# USDCAD DATA
+# Data from tables
 class POST(db.Model):
     id = db.Column(db.Integer, primary_key = True)
     time = db.Column(db.String(100), unique=True)
@@ -29,12 +29,13 @@ class POST(db.Model):
         self.close = close
 
 # Schema
-class POSTSchema(ma.Schema):
+class PostSchema(ma.Schema):
     class Meta:
         fields = ('id', 'time', 'close')
 
 # Init schema
-product_schema = POSTSchema(strict =True)
+post_schema = PostSchema()
+posts_schema = PostSchema(many=True)
 
 # init data stream from trading view
 usdcad = TA_Handler( 
@@ -44,13 +45,26 @@ usdcad = TA_Handler(
     interval=Interval.INTERVAL_4_HOURS,
     # proxies={'http': 'http://example.com:8080'} # Uncomment to enable proxy (replace the URL).
 )
-print(usdcad. get_analysis().indicators["close"])
+
+@app.route('/lastclose', methods=['GET'])
+def addrow():
+    rownum = 0 # id will be row number
+    now = datetime.now()
+    current_time = now.strftime("%H:%M:%S")
+    closeprice = usdcad. get_analysis().indicators["close"] # close at 4hr
+    new_row = POST(id = rownum, time = current_time, close= closeprice)
+    db.session.add(new_row)
+    db.session.commit()
+
+    return post_schema.jsonify(new_row)
+    
 
 
 @app.route('/', methods=['GET'])
 def get():
     return jsonify({'msg': 'Hello World'})
 
-#run server
+
+#run api endpoint
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=8080, debug=True)

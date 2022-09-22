@@ -9,6 +9,8 @@ flask-sqlalchemy = "*"
 flask-marshmallow = "*"
 marshmallow-sqlalchemy = "*"
 tradingview-ta = "*"
+marshmallow = "*"
+datetime = "*"
 
 [dev-packages]
 
