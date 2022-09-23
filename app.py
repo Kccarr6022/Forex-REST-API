@@ -3,7 +3,10 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_marshmallow import Marshmallow
 from tradingview_ta import TA_Handler, Interval, Exchange
 from datetime import datetime
+import time
 import os
+
+times = ["20:59:59", "16:59:59", "12:59:59", "8:59:59", "4:59:59", "0:59:59"]
 
 #init app
 app = Flask(__name__)
@@ -43,8 +46,20 @@ usdcad = TA_Handler(
     screener="forex",
     exchange="FX_IDC", 
     interval=Interval.INTERVAL_4_HOURS,
-    # proxies={'http': 'http://example.com:8080'} # Uncomment to enable proxy (replace the URL).
 )
+
+def collect_closes():
+
+    while True:
+        if datetime.now() in times:
+            rownum = db.session.query(POST).count()
+            now = datetime.now()
+            current_time = now.strftime("%H:%M:%S")
+            closeprice = usdcad. get_analysis().indicators["close"] # close at 4hr
+            candle = POST(id = rownum, time = current_time, close= closeprice)
+            db.session.add(candle)
+            db.session.commit()
+        time.sleep()
 
 @app.route('/', methods=['GET'])
 def currentclose():
@@ -73,4 +88,5 @@ def fourhourclose():
 
 #run api endpoint
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8080, debug=True)
+    thread.start_new_thread(collect_closes, ())
+    app.run(host='0.0.0.0', port=8080, debug=True, threaded=True)
