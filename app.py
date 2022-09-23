@@ -3,6 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_marshmallow import Marshmallow
 from tradingview_ta import TA_Handler, Interval, Exchange
 from datetime import datetime
+import threading
 import time
 import os
 
@@ -59,7 +60,7 @@ def collect_closes():
             candle = POST(id = rownum, time = current_time, close= closeprice)
             db.session.add(candle)
             db.session.commit()
-        time.sleep()
+            time.sleep(14000)
 
 @app.route('/', methods=['GET'])
 def currentclose():
@@ -85,8 +86,9 @@ def fourhourclose():
 
     return post_schema.jsonify(candle)
 
-
+def main():
+    threading.Thread(target=collect_closes).start()
+    threading.Thread(target=app.run(host='0.0.0.0', port=8080, debug=True, threaded=True)).start()
 #run api endpoint
 if __name__ == '__main__':
-    thread.start_new_thread(collect_closes, ())
-    app.run(host='0.0.0.0', port=8080, debug=True, threaded=True)
+    main()
