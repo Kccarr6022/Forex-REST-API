@@ -7,7 +7,7 @@ import threading
 import time
 import os
 
-times = ["20:59:59", "16:59:59", "12:59:59", "8:59:59", "4:59:59", "0:59:59"]
+closing_times = ["21:00:00", "17:00:00", "13:00:00", "9:00:00", "5:00:00", "1:00:00"]
 
 # init app
 app = Flask(__name__)
@@ -58,7 +58,7 @@ def collect_closes():
     """
 
     while True:
-        if datetime.now() in times:
+        if datetime.now().strftime("%H:%M:%S") in closing_times:
             rownum = db.session.query(POST).count()
             now = datetime.now()
             current_time = now.strftime("%H:%M:%S")
@@ -72,29 +72,13 @@ def collect_closes():
 
 @app.route('/', methods=['GET'])
 def currentclose():
-    rownum = db.session.query(POST).count()
-    now = datetime.now()
-    current_time = now.strftime("%H:%M:%S")
-    closeprice = usdcad. get_analysis().indicators["close"]  # close at 4hr
-    candle = POST(id=rownum, time=current_time, close=closeprice)
-    db.session.add(candle)
-    db.session.commit()
-
+    candle = db.session.query(POST).order_by(POST.id.desc()).first()
     return post_schema.jsonify(candle)
 
 
 @app.route('/closes', methods=['GET'])
 def fourhourclose():
-    rownum = db.session.query(POST).count()
-    now = datetime.now()
-    current_time = now.strftime("%H:%M:%S")
-    closeprice = usdcad. get_analysis().indicators["close"]  # close at 4hr
-    candle = POST(id=rownum, time=current_time, close=closeprice)
-    db.session.add(candle)
-    db.session.commit()
-
     data = db.session.query(POST).all()
-    print(data)
     return posts_schema.jsonify(data)
 
 
