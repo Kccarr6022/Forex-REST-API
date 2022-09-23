@@ -83,7 +83,7 @@ def currentclose():
     return post_schema.jsonify(candle)
 
 
-@app.route('/USDCAD4hr', methods=['GET'])
+@app.route('/closes', methods=['GET'])
 def fourhourclose():
     rownum = db.session.query(POST).count()
     now = datetime.now()
@@ -93,7 +93,9 @@ def fourhourclose():
     db.session.add(candle)
     db.session.commit()
 
-    return post_schema.jsonify(candle)
+    data = db.session.query(POST).all()
+    print(data)
+    return posts_schema.jsonify(data)
 
 
 def main():
