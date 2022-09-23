@@ -1,13 +1,20 @@
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_marshmallow import Marshmallow
+from flask_lambda import FlaskLambda
 from tradingview_ta import TA_Handler, Interval, Exchange
 from datetime import datetime
 import threading
 import time
 import os
 
-closing_times = ["21:00:00", "17:00:00", "13:00:00", "9:00:00", "5:00:00", "1:00:00"]
+closing_times = [
+    "21:00:00",
+    "17:00:00",
+    "13:00:00",
+    "9:00:00",
+    "5:00:00",
+    "1:00:00"]
 
 # init app
 app = Flask(__name__)
@@ -25,7 +32,7 @@ ma = Marshmallow(app)
 # db class
 class POST(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    time = db.Column(db.String(100), unique=True)
+    time = db.Column(db.String(100))
     close = db.Column(db.Float)
 
     def __init__(self, id, time, close):
